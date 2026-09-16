@@ -85,18 +85,3 @@ Se implementará un árbol binario de búsqueda para facilitar la organización 
 ### Grafos
 
 Los grafos permitirán representar relaciones entre diferentes elementos y posteriormente realizar recorridos mediante BFS y DFS.
-
-## Algoritmos implementados
-
-### Búsqueda lineal
-
-La búsqueda lineal recorrerá los elementos uno por uno hasta encontrar el libro solicitado o determinar que no existe.
-
-### Búsqueda binaria
-
-La búsqueda binaria permitirá localizar elementos dentro de una colección previamente ordenada, reduciendo progresivamente el espacio de búsqueda.
-
-### Hash Map
-
-El Hash Map permitirá realizar búsquedas utilizando una clave, proporcionando un mecanismo eficiente para acceder a los elementos.
-

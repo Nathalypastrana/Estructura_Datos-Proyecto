@@ -1,91 +1,57 @@
-# Sistema de Gestión de Libros - Estructuras de Datos
+# Biblioteca Inteligente - Estructuras de Datos
 
-## Descripción
+Sistema de consola en Python para administrar una biblioteca. Cada estructura de datos
+del curso resuelve un problema **real de una biblioteca**, no un ejemplo suelto.
 
-Este proyecto consiste en el desarrollo de un sistema para la gestión de libros, diseñado con el propósito de aplicar y demostrar diferentes estructuras de datos y algoritmos fundamentales.
+## Cómo ejecutarlo
 
-El sistema permitirá registrar, consultar, buscar, ordenar y organizar información relacionada con libros, utilizando diferentes estructuras de datos como vectores, matrices, listas enlazadas, pilas, colas, árboles y grafos.
+```bash
+python3 biblioteca_inteligente/main.py          # menú interactivo
+cd biblioteca_inteligente && python3 -m unittest test_biblioteca   # pruebas
+```
 
-Además, se implementarán diferentes algoritmos de búsqueda y recorrido, permitiendo comparar y comprender el funcionamiento de cada estructura y algoritmo dentro de un caso práctico.
+No requiere librerías externas. Arranca con un catálogo de ejemplo de 11 libros.
 
-## Objetivo general
+## Archivos
 
-Desarrollar un sistema de gestión de libros que permita aplicar diferentes estructuras de datos y algoritmos de búsqueda, ordenamiento, recursividad y recorrido de grafos, con el fin de fortalecer los conocimientos relacionados con el manejo y procesamiento de información.
+| Archivo | Contenido |
+|---|---|
+| `estructuras.py` | Estructuras implementadas desde cero (lista enlazada, hash map, pila, cola, árboles, grafo, merge sort) |
+| `biblioteca.py` | Clase `Biblioteca`: aplica cada estructura a un proceso de la biblioteca |
+| `main.py` | Menú de consola |
+| `test_biblioteca.py` | Pruebas automáticas |
 
-## Objetivos específicos
+## Qué hace cada estructura en la biblioteca
 
-- Registrar y administrar información de libros.
-- Implementar vectores y matrices para almacenar y organizar información.
-- Aplicar algoritmos de búsqueda lineal y búsqueda binaria.
-- Implementar un Hash Map para realizar búsquedas rápidas.
-- Administrar información mediante una lista enlazada.
-- Implementar una pila y una cola.
-- Aplicar conceptos de recursividad.
-- Organizar información mediante árboles.
-- Implementar árboles binarios de búsqueda.
-- Representar relaciones entre elementos mediante grafos.
-- Implementar recorridos BFS y DFS.
+| # | Proceso (menú) | Estructura / algoritmo | Para qué sirve en la biblioteca |
+|---|---|---|---|
+| 1 | Registrar libro | Lista enlazada + validaciones | Alta de libros con código automático (`LIB-001`...) |
+| 2 | Mostrar catálogo | Lista enlazada | Listado en orden de ingreso |
+| 3 | Buscar libro | Búsqueda parcial | Por título, autor o género (sin importar tildes/mayúsculas) |
+| 4 | Ordenar catálogo | Merge sort (recursivo) | Por título, autor, año o páginas |
+| 5 | Vectores | Vectores | Vector de años y de páginas; libro más antiguo, más extenso, promedios |
+| 6 | Matrices | Matriz filas × posiciones | Estantería: en qué estante y posición está cada libro |
+| 7 | Búsqueda lineal | Búsqueda lineal | Título exacto, mostrando cuántas comparaciones hizo |
+| 8 | Búsqueda binaria | Búsqueda binaria | Título exacto sobre el catálogo ordenado, mostrando los pasos |
+| 9 | Hash Map | Tabla hash con encadenamiento | Acceso inmediato a un libro por su código |
+| 10 | Lista enlazada | Lista enlazada | Catálogo principal; dar de baja libros |
+| 11 | Pila (LIFO) | Pila | Carrito de devoluciones: el último libro devuelto es el primero en reacomodarse |
+| 12 | Cola (FIFO) | Cola | Lista de espera: si el libro está prestado, el primero en la fila lo recibe al devolverse |
+| 13 | Recursividad | Recursión | Conteo de disponibles, total de páginas, libros por género y "órdenes posibles de lectura" (factorial) |
+| 14 | Árbol | Árbol general | Clasificación género → autor → libro |
+| 15 | Árbol binario de búsqueda | ABB | Índice alfabético de títulos: inorden, búsqueda y autocompletado por prefijo |
+| 16 | Grafo | Grafo no dirigido | Libros relacionados por mismo autor o mismo género |
+| 17 | BFS y DFS | Recorridos de grafo | BFS: recomendaciones de más cerca a más lejos; DFS: exploración en profundidad |
+| 18 | Prestar libro | Hash Map + Cola | Presta o agrega al lector a la lista de espera |
+| 19 | Devolver libro | Cola + Pila | Entrega al siguiente en espera, o envía al carrito de devoluciones |
 
-## Procesos desarrollados
+## Flujo de ejemplo
 
-El proyecto contempla los siguientes procesos:
+1. `18` Prestar `LIB-001` a Ana → queda prestado.
+2. `18` Prestar `LIB-001` a Luis → entra a la **cola** de espera.
+3. `19` Devolver `LIB-001` → Ana lo devuelve y Luis lo recibe (FIFO).
+4. `19` Devolver `LIB-001` → Luis lo devuelve; sin espera, va a la **pila** de devoluciones.
+5. `11` → Reacomodar: saca de la pila el último libro devuelto y dice su estante y posición (**matriz**).
 
-1. Registrar libros.
-2. Mostrar libros.
-3. Buscar libros.
-4. Ordenar libros.
-5. Trabajar con vectores.
-6. Trabajar con matrices.
-7. Realizar búsqueda lineal.
-8. Realizar búsqueda binaria.
-9. Buscar rápidamente mediante Hash Map.
-10. Administrar una lista enlazada.
-11. Administrar una pila.
-12. Administrar una cola.
-13. Utilizar recursividad.
-14. Organizar libros mediante árboles.
-15. Utilizar árboles binarios de búsqueda.
-16. Representar relaciones mediante grafos.
-17. Recorrer grafos mediante BFS y DFS.
-
-## Estructuras de datos utilizadas
-
-### Versión de consola en Python
-
-Ejecuta `python3 biblioteca_inteligente/main.py` para usar el menú de consola. El catálogo se almacena en una lista simplemente enlazada; el menú también permite probar una pila LIFO, una cola FIFO, el factorial recursivo y un árbol binario de búsqueda con inserción, búsqueda y recorrido inorden.
-
-### Vectores
-
-Se utilizarán vectores para almacenar y manipular colecciones de libros y sus respectivos datos.
-
-### Matrices
-
-Se implementarán matrices para representar información organizada en filas y columnas.
-
-### Lista enlazada
-
-Permitirá administrar una colección dinámica de elementos mediante nodos relacionados entre sí.
-
-### Pila
-
-Se implementará una estructura de tipo LIFO (Last In, First Out), donde el último elemento en ingresar será el primero en salir.
-
-### Cola
-
-Se implementará una estructura de tipo FIFO (First In, First Out), donde el primer elemento en ingresar será el primero en salir.
-
-### Hash Map
-
-Se utilizará para realizar búsquedas rápidas mediante una clave asociada a cada elemento.
-
-### Árbol
-
-Los árboles permitirán organizar jerárquicamente la información relacionada con los libros.
-
-### Árbol binario de búsqueda
-
-Se implementará un árbol binario de búsqueda para facilitar la organización y consulta de los elementos.
-
-### Grafos
-
-Los grafos permitirán representar relaciones entre diferentes elementos y posteriormente realizar recorridos mediante BFS y DFS.
+> Nota: la carpeta contiene además `index.html`, `app.js` y `styles.css`, un simulador web de la
+> versión anterior de `main.py`. No refleja todavía esta versión.

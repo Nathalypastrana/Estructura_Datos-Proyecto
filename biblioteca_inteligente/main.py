@@ -1,227 +1,20 @@
-from collections import deque
+"""Biblioteca Inteligente - menú de consola.
+
+Ejecutar:  python3 biblioteca_inteligente/main.py
+"""
+
+from biblioteca import crear_biblioteca_demo
+from estructuras import normalizar
+
+biblioteca = crear_biblioteca_demo()
 
 
-class NodoLibro:
-    def __init__(self, titulo):
-        self.titulo = titulo
-        self.siguiente = None
-
-
-class ListaSimplementeEnlazada:
-    def __init__(self, titulos=()):
-        self.cabeza = None
-        self.cola = None
-        self.tamano = 0
-        for titulo in titulos:
-            self.agregar_final(titulo)
-
-    def __iter__(self):
-        actual = self.cabeza
-        while actual is not None:
-            yield actual.titulo
-            actual = actual.siguiente
-
-    def __len__(self):
-        return self.tamano
-
-    def agregar_final(self, titulo):
-        nodo = NodoLibro(titulo)
-        if self.cabeza is None:
-            self.cabeza = nodo
-        else:
-            self.cola.siguiente = nodo
-        self.cola = nodo
-        self.tamano += 1
-
-    def quitar_primero(self):
-        if self.cabeza is None:
-            return None
-        titulo = self.cabeza.titulo
-        self.cabeza = self.cabeza.siguiente
-        self.tamano -= 1
-        if self.cabeza is None:
-            self.cola = None
-        return titulo
-
-    def ordenar(self):
-        titulos_ordenados = sorted(self)
-        self.cabeza = None
-        self.cola = None
-        self.tamano = 0
-        for titulo in titulos_ordenados:
-            self.agregar_final(titulo)
-
-
-class Pila:
-    def __init__(self):
-        self.elementos = []
-
-    def apilar(self, elemento):
-        self.elementos.append(elemento)
-
-    def desapilar(self):
-        return self.elementos.pop() if self.elementos else None
-
-
-class Cola:
-    def __init__(self):
-        self.elementos = deque()
-
-    def encolar(self, elemento):
-        self.elementos.append(elemento)
-
-    def desencolar(self):
-        return self.elementos.popleft() if self.elementos else None
-
-
-class NodoArbol:
-    def __init__(self, valor):
-        self.valor = valor
-        self.izquierda = None
-        self.derecha = None
-
-
-class ArbolBinarioBusqueda:
-    def __init__(self):
-        self.raiz = None
-
-    def insertar(self, valor):
-        self.raiz, agregado = self._insertar(self.raiz, valor)
-        return agregado
-
-    def _insertar(self, nodo, valor):
-        if nodo is None:
-            return NodoArbol(valor), True
-        if valor < nodo.valor:
-            nodo.izquierda, agregado = self._insertar(nodo.izquierda, valor)
-        elif valor > nodo.valor:
-            nodo.derecha, agregado = self._insertar(nodo.derecha, valor)
-        else:
-            return nodo, False
-        return nodo, agregado
-
-    def contiene(self, valor):
-        return self._contiene(self.raiz, valor)
-
-    def _contiene(self, nodo, valor):
-        if nodo is None:
-            return False
-        if valor == nodo.valor:
-            return True
-        if valor < nodo.valor:
-            return self._contiene(nodo.izquierda, valor)
-        return self._contiene(nodo.derecha, valor)
-
-    def recorrido_inorden(self):
-        valores = []
-        self._recorrido_inorden(self.raiz, valores)
-        return valores
-
-    def _recorrido_inorden(self, nodo, valores):
-        if nodo is None:
-            return
-        self._recorrido_inorden(nodo.izquierda, valores)
-        valores.append(nodo.valor)
-        self._recorrido_inorden(nodo.derecha, valores)
-
-
-libros = ListaSimplementeEnlazada([
-    "Cien años de soledad",
-    "El principito",
-    "Don Quijote de la Mancha",
-    "Memorias del Subsuelo",
-    "1984"
-])
-pila = Pila()
-cola = Cola()
-arbol = ArbolBinarioBusqueda()
-
-#Funciones 
-def mostrar_libros():
-    """Muestra los libros disponible"""
-    if not libros:
-        print("\nNo hay libros disponibles")
-    else:
-        print("\n LIBROS DISPONIBLES")
-        for i, libro in enumerate(libros, start=1):
-            print(f"{i}. {libro}")
-
-def agregar_libro():
-    """Agrega un nuevo libro a la lista"""
-    titulo = input("\nIngrese el nombre del libro: ").strip()
-
-    if titulo:
-        libros.agregar_final(titulo)
-        print(f'Libro "{titulo}" agregado correctamente.')
-    else:
-        print("El nombre del libro no puede estar vacio.")
-
-def buscar_libro():
-    """Busca un libro por nombre (búsqueda lineal)"""
-    termino = input("\nIngrese el nombre a buscar: ").strip().lower()
-    encontrado = False
-    for i, libro in enumerate(libros, start=1):
-        if termino in libro.lower():
-            print(f"{i}. {libro}")
-            encontrado = True
-    if not encontrado:
-        print("No se encontró ningún libro con ese nombre.")
-
-
-def ordenar_libros():
-    """Ordena la lista de libros alfabéticamente"""
-    libros.ordenar()
-    print("\nLibros ordenados alfabéticamente:")
-    mostrar_libros()
-
-
-def trabajar_con_vectores():
-    """Ejemplo de manejo de un vector (arreglo unidimensional)"""
-    vector = [len(libro) for libro in libros]
-    print("\nVector de longitudes de los títulos:")
-    print(vector)
-
-
-def trabajar_con_matrices():
-    """Ejemplo de manejo de una matriz (arreglo bidimensional)"""
-    matriz = [[i + 1, libro] for i, libro in enumerate(libros)]
-    print("\nMatriz (índice - título):")
-    for fila in matriz:
-        print(fila)
-
-
-def busqueda_lineal(titulo):
-    """Recorre la lista uno por uno hasta encontrar coincidencia exacta"""
-    for i, libro in enumerate(libros):
-        if libro.lower() == titulo.lower():
-            return i
-    return -1
-
-
-def busqueda_binaria(titulo):
-    """Requiere la lista ordenada. Divide el rango a la mitad en cada paso"""
-    libros_ordenados = sorted(libros)
-    izquierda, derecha = 0, len(libros_ordenados) - 1
-    while izquierda <= derecha:
-        medio = (izquierda + derecha) // 2
-        if libros_ordenados[medio].lower() == titulo.lower():
-            return medio
-        elif libros_ordenados[medio].lower() < titulo.lower():
-            izquierda = medio + 1
-        else:
-            derecha = medio - 1
-    return -1        
-
-
-def factorial_recursivo(numero):
-    """Calcula el factorial mediante llamadas recursivas."""
-    if numero <= 1:
-        return 1
-    return numero * factorial_recursivo(numero - 1)
+# ------------------------------------------------------------- utilidades
+def leer_texto(mensaje):
+    return input(mensaje).strip()
 
 
 def leer_entero(mensaje):
-    """Lee un entero y comunica el error si la entrada no es válida."""
     try:
         return int(input(mensaje).strip())
     except ValueError:
@@ -229,42 +22,220 @@ def leer_entero(mensaje):
         return None
 
 
+def elegir_libro(mensaje="Código del libro (ej. LIB-001): "):
+    """Pide un código y devuelve el Libro (o None) usando el Hash Map."""
+    codigo = leer_texto(mensaje)
+    libro, _ = biblioteca.buscar_por_codigo(codigo)
+    if libro is None:
+        print("No existe un libro con ese código.")
+    return libro
+
+
+def titulo_menu(texto):
+    print(f"\n===== {texto} =====")
+
+
+# ------------------------------------------------- 1-4: registro y consulta
+def registrar_libro():
+    titulo_menu("REGISTRAR LIBRO")
+    titulo = leer_texto("Título: ")
+    autor = leer_texto("Autor: ")
+    genero = leer_texto("Género (Novela, Fábula, Ciencia ficción...): ")
+    anio = leer_entero("Año de publicación: ")
+    paginas = leer_entero("Número de páginas: ")
+    if anio is None or paginas is None:
+        return
+    try:
+        libro = biblioteca.registrar(titulo, autor, genero, anio, paginas)
+    except ValueError as error:
+        print(f"No se pudo registrar: {error}")
+        return
+    fila, col = biblioteca.ubicacion(libro.codigo)
+    print(f"Libro registrado con código {libro.codigo}. "
+          f"Estante {fila}, posición {col}.")
+    relacionados = biblioteca.recomendaciones_bfs(libro.codigo)
+    if relacionados:
+        print(f"Quedó relacionado con {len(relacionados)} libro(s) del catálogo.")
+
+
+def mostrar_libros():
+    titulo_menu("CATÁLOGO DE LA BIBLIOTECA")
+    if not len(biblioteca.catalogo):
+        print("No hay libros registrados.")
+        return
+    for i, libro in enumerate(biblioteca.catalogo, start=1):
+        print(f"{i}. {libro}")
+
+
+def buscar_libro():
+    titulo_menu("BUSCAR LIBRO (título, autor o género)")
+    termino = leer_texto("Texto a buscar: ")
+    if not termino:
+        print("Escriba algo para buscar.")
+        return
+    resultados = biblioteca.buscar_texto(termino)
+    if not resultados:
+        print("No se encontró ningún libro.")
+    for libro in resultados:
+        print(f"- {libro}")
+
+
+def ordenar_libros():
+    titulo_menu("ORDENAR CATÁLOGO (merge sort)")
+    print("1. Por título   2. Por autor   3. Por año   4. Por páginas")
+    criterio = {"1": "titulo", "2": "autor", "3": "anio", "4": "paginas"}.get(
+        leer_texto("Seleccione: "))
+    if criterio is None:
+        print("Opción inválida.")
+        return
+    for i, libro in enumerate(biblioteca.ordenar(criterio), start=1):
+        print(f"{i}. {libro}")
+
+
+# --------------------------------------------------- 5-6: vector y matriz
+def trabajar_con_vectores():
+    titulo_menu("VECTORES: ESTADÍSTICAS DEL CATÁLOGO")
+    est = biblioteca.estadisticas()
+    if est is None:
+        print("No hay libros registrados.")
+        return
+    print(f"Vector de años de publicación: {est['anios']}")
+    print(f"Vector de páginas:             {est['paginas']}")
+    print(f"Libro más antiguo:  {est['mas_antiguo'].titulo} ({est['mas_antiguo'].anio})")
+    print(f"Libro más reciente: {est['mas_reciente'].titulo} ({est['mas_reciente'].anio})")
+    print(f"Libro más extenso:  {est['mas_largo'].titulo} ({est['mas_largo'].paginas} págs.)")
+    print(f"Año promedio: {est['promedio_anio']:.0f} · "
+          f"Páginas promedio: {est['promedio_paginas']:.0f}")
+
+
+def trabajar_con_matrices():
+    titulo_menu("MATRIZ: ESTANTERÍA (filas = estantes, columnas = posiciones)")
+    for linea in biblioteca.matriz_estanteria():
+        print(linea)
+    if leer_texto("¿Ubicar un libro? (s/n): ").lower() != "s":
+        return
+    libro = elegir_libro()
+    if libro:
+        fila, col = biblioteca.ubicacion(libro.codigo)
+        print(f'"{libro.titulo}" está en el estante {fila}, posición {col}.')
+
+
+# ------------------------------------------------ 7-9: búsquedas
+def busqueda_lineal():
+    titulo_menu("BÚSQUEDA LINEAL (por título exacto)")
+    titulo = leer_texto("Título: ")
+    pos, comparaciones = biblioteca.busqueda_lineal(titulo)
+    if pos == -1:
+        print(f"No encontrado ({comparaciones} comparaciones).")
+    else:
+        libro = list(biblioteca.catalogo)[pos]
+        print(f"Encontrado en la posición {pos + 1} del catálogo tras "
+              f"{comparaciones} comparación(es):\n  {libro}")
+
+
+def busqueda_binaria():
+    titulo_menu("BÚSQUEDA BINARIA (catálogo ordenado por título)")
+    titulo = leer_texto("Título: ")
+    libro, pos, pasos, vector = biblioteca.busqueda_binaria(titulo)
+    if libro is None:
+        print(f"No encontrado ({pasos} paso(s) sobre {len(vector)} libros).")
+    else:
+        print(f"Encontrado en la posición {pos + 1} del vector ordenado tras "
+              f"{pasos} paso(s) de {len(vector)} libros:\n  {libro}")
+
+
+def busqueda_hash():
+    titulo_menu("HASH MAP: BÚSQUEDA INSTANTÁNEA POR CÓDIGO")
+    codigo = leer_texto("Código (ej. LIB-003): ")
+    libro, cubeta = biblioteca.buscar_por_codigo(codigo)
+    print(f"Cubeta consultada: {cubeta} (de {len(biblioteca.por_codigo)} libros indexados)")
+    print(libro if libro else "No existe ese código.")
+
+
+# -------------------------------------------- 10: lista enlazada (catálogo)
 def gestionar_lista_enlazada():
     while True:
-        print("\n===== LISTA SIMPLEMENTE ENLAZADA =====")
-        mostrar_libros()
-        print("1. Agregar libro")
-        print("2. Quitar el primer libro")
+        titulo_menu("CATÁLOGO (LISTA ENLAZADA)")
+        print(f"Libros en la lista: {len(biblioteca.catalogo)}")
+        print("1. Mostrar catálogo en orden de ingreso")
+        print("2. Registrar libro (agrega al final)")
+        print("3. Dar de baja un libro")
         print("0. Volver")
-        opcion = input("Seleccione: ").strip()
+        opcion = leer_texto("Seleccione: ")
         if opcion == "1":
-            agregar_libro()
+            partes = [l.titulo for l in biblioteca.catalogo]
+            print((" → ".join(partes) + " → None") if partes else "Lista vacía.")
         elif opcion == "2":
-            titulo = libros.quitar_primero()
-            print(f'Se quitó "{titulo}".' if titulo else "La lista está vacía.")
+            registrar_libro()
+        elif opcion == "3":
+            libro = elegir_libro()
+            if libro:
+                try:
+                    biblioteca.dar_de_baja(libro.codigo)
+                    print(f'Se dio de baja "{libro.titulo}".')
+                except ValueError as error:
+                    print(error)
         elif opcion == "0":
             break
         else:
             print("Opción inválida.")
 
 
+# ------------------------------------- 11-12: pila y cola (préstamos)
+def prestar_libro():
+    titulo_menu("PRESTAR LIBRO")
+    libro = elegir_libro()
+    if not libro:
+        return
+    usuario = leer_texto("Nombre del lector: ")
+    try:
+        estado, posicion = biblioteca.prestar(libro.codigo, usuario)
+    except ValueError as error:
+        print(error)
+        return
+    if estado == "prestado":
+        print(f'"{libro.titulo}" prestado a {usuario}.')
+    else:
+        print(f'"{libro.titulo}" está prestado. {usuario} quedó en la lista '
+              f"de espera (posición {posicion}).")
+
+
+def devolver_libro():
+    titulo_menu("DEVOLVER LIBRO")
+    libro = elegir_libro()
+    if not libro:
+        return
+    try:
+        quien, siguiente = biblioteca.devolver(libro.codigo)
+    except ValueError as error:
+        print(error)
+        return
+    print(f'{quien} devolvió "{libro.titulo}".')
+    if siguiente:
+        print(f"Se le entregó de inmediato a {siguiente} (primero en la cola de espera).")
+    else:
+        print("Sin lista de espera: el libro va al carrito de devoluciones (pila).")
+
+
 def gestionar_pila():
     while True:
-        print("\n===== PILA (LIFO) =====")
-        print(f"Elementos (cima primero): {list(reversed(pila.elementos))}")
-        print("1. Apilar elemento")
-        print("2. Desapilar elemento")
+        titulo_menu("CARRITO DE DEVOLUCIONES (PILA - LIFO)")
+        pendientes = [l.titulo for l in biblioteca.devoluciones]
+        print("Pendientes de reacomodar (la cima primero): "
+              f"{pendientes if pendientes else 'carrito vacío'}")
+        print("1. Reacomodar el último libro devuelto (desapilar)")
+        print("2. Devolver un libro (apilar)")
         print("0. Volver")
-        opcion = input("Seleccione: ").strip()
+        opcion = leer_texto("Seleccione: ")
         if opcion == "1":
-            elemento = input("Ingrese el elemento: ").strip()
-            if elemento:
-                pila.apilar(elemento)
+            libro, ubicacion = biblioteca.reacomodar()
+            if libro is None:
+                print("El carrito está vacío.")
             else:
-                print("El elemento no puede estar vacío.")
+                print(f'Reacomode "{libro.titulo}" en el estante {ubicacion[0]}, '
+                      f"posición {ubicacion[1]}.")
         elif opcion == "2":
-            elemento = pila.desapilar()
-            print(f"Salió de la cima: {elemento}" if elemento else "La pila está vacía.")
+            devolver_libro()
         elif opcion == "0":
             break
         else:
@@ -273,120 +244,135 @@ def gestionar_pila():
 
 def gestionar_cola():
     while True:
-        print("\n===== COLA (FIFO) =====")
-        print(f"Elementos (primero en salir): {list(cola.elementos)}")
-        print("1. Encolar elemento")
-        print("2. Desencolar elemento")
+        titulo_menu("LISTA DE ESPERA DE UN LIBRO (COLA - FIFO)")
+        print("1. Ver la lista de espera de un libro")
+        print("2. Anotarse / prestar un libro (encolar)")
+        print("3. Devolver un libro (el primero en espera lo recibe)")
         print("0. Volver")
-        opcion = input("Seleccione: ").strip()
+        opcion = leer_texto("Seleccione: ")
         if opcion == "1":
-            elemento = input("Ingrese el elemento: ").strip()
-            if elemento:
-                cola.encolar(elemento)
-            else:
-                print("El elemento no puede estar vacío.")
+            libro = elegir_libro()
+            if libro:
+                espera = biblioteca.esperas.obtener(libro.codigo)
+                actual = biblioteca.prestamos.obtener(libro.codigo)
+                print(f'"{libro.titulo}" - prestado a: {actual or "nadie (disponible)"}')
+                if len(espera):
+                    for i, usuario in enumerate(espera, start=1):
+                        print(f"  {i}. {usuario}")
+                else:
+                    print("  Nadie en espera.")
         elif opcion == "2":
-            elemento = cola.desencolar()
-            print(f"Salió de la cola: {elemento}" if elemento else "La cola está vacía.")
+            prestar_libro()
+        elif opcion == "3":
+            devolver_libro()
         elif opcion == "0":
             break
         else:
             print("Opción inválida.")
 
 
+# ----------------------------------------------------- 13: recursividad
 def trabajar_con_recursividad():
-    numero = leer_entero("\nIngrese un entero entre 0 y 12 para calcular su factorial: ")
-    if numero is None:
+    titulo_menu("RECURSIVIDAD APLICADA A LA BIBLIOTECA")
+    total = len(biblioteca.catalogo)
+    print(f"Libros disponibles (conteo recursivo en la lista): "
+          f"{biblioteca.contar_disponibles()} de {total}")
+    print(f"Total de páginas del catálogo (suma recursiva): {biblioteca.total_paginas()}")
+    genero = leer_texto("Género a contar (Enter para omitir): ")
+    if genero:
+        print(f"Libros de '{genero}' (conteo recursivo): {biblioteca.contar_genero(genero)}")
+    n = leer_entero(f"¿Cuántos libros quieres leer? (1 a {min(total, 15)}) para saber "
+                    "de cuántas formas podrías ordenar tu lectura: ")
+    if n is None:
         return
-    if not 0 <= numero <= 12:
-        print("El número debe estar entre 0 y 12.")
+    if not 1 <= n <= min(total, 15):
+        print(f"Debe estar entre 1 y {min(total, 15)}.")
         return
-    print(f"{numero}! = {factorial_recursivo(numero)}")
+    print(f"{n} libros se pueden leer en {biblioteca.ordenes_de_lectura(n):,} órdenes "
+          f"distintos ({n}! factorial recursivo).")
+
+
+# ------------------------------------------------------- 14-15: árboles
+def gestionar_arbol_categorias():
+    titulo_menu("ÁRBOL DE CATEGORÍAS (género → autor → libro)")
+    for linea in biblioteca.categorias.lineas():
+        print(linea)
+    print(f"\nTotal de libros en el árbol: {biblioteca.categorias.contar_hojas()}"
+          "  (✔ disponible, ✘ prestado)")
 
 
 def gestionar_arbol_binario():
     while True:
-        print("\n===== ÁRBOL BINARIO DE BÚSQUEDA =====")
-        valores = arbol.recorrido_inorden()
-        print(f"Recorrido inorden: {valores if valores else 'árbol vacío'}")
-        print("1. Insertar número")
-        print("2. Buscar número")
+        titulo_menu("ÍNDICE DE TÍTULOS (ÁRBOL BINARIO DE BÚSQUEDA)")
+        print(f"Títulos indexados: {len(biblioteca.indice_titulos)} · "
+              f"Altura del árbol: {biblioteca.indice_titulos.altura()}")
+        print("1. Mostrar títulos en orden alfabético (recorrido inorden)")
+        print("2. Buscar un título exacto")
+        print("3. Autocompletar por prefijo")
         print("0. Volver")
-        opcion = input("Seleccione: ").strip()
+        opcion = leer_texto("Seleccione: ")
         if opcion == "1":
-            valor = leer_entero("Ingrese el número: ")
-            if valor is not None:
-                if arbol.insertar(valor):
-                    print(f"Se insertó {valor}.")
-                else:
-                    print(f"{valor} ya existe; no se permiten duplicados.")
+            for i, libro in enumerate(biblioteca.indice_titulos.inorden(), start=1):
+                print(f"{i}. {libro.titulo} ({libro.autor})")
         elif opcion == "2":
-            valor = leer_entero("Ingrese el número a buscar: ")
-            if valor is not None:
-                print(
-                    f"{valor} está en el árbol."
-                    if arbol.contiene(valor)
-                    else f"{valor} no está en el árbol."
-                )
+            titulo = leer_texto("Título: ")
+            libro, pasos = biblioteca.indice_titulos.buscar(normalizar(titulo))
+            print(f"{libro}  [{pasos} paso(s) en el árbol]" if libro
+                  else f"No encontrado ({pasos} paso(s)).")
+        elif opcion == "3":
+            prefijo = normalizar(leer_texto("Prefijo: "))
+            coincidencias = biblioteca.indice_titulos.con_prefijo(prefijo) if prefijo else []
+            if not coincidencias:
+                print("Sin coincidencias.")
+            for _, libro in coincidencias:
+                print(f"- {libro.titulo} ({libro.autor})")
         elif opcion == "0":
             break
         else:
             print("Opción inválida.")
 
 
-#Menu de opciones 
+# ---------------------------------------------------------------- menú
+OPCIONES = [
+    ("Registrar libro", registrar_libro),
+    ("Mostrar catálogo", mostrar_libros),
+    ("Buscar libro (título, autor, género)", buscar_libro),
+    ("Ordenar catálogo (merge sort)", ordenar_libros),
+    ("Vectores: estadísticas del catálogo", trabajar_con_vectores),
+    ("Matrices: estantería", trabajar_con_matrices),
+    ("Búsqueda lineal por título", busqueda_lineal),
+    ("Búsqueda binaria por título", busqueda_binaria),
+    ("Hash Map: búsqueda por código", busqueda_hash),
+    ("Lista enlazada: catálogo / dar de baja", gestionar_lista_enlazada),
+    ("Pila: carrito de devoluciones", gestionar_pila),
+    ("Cola: lista de espera de préstamos", gestionar_cola),
+    ("Recursividad: conteos y órdenes de lectura", trabajar_con_recursividad),
+    ("Árbol: categorías (género → autor → libro)", gestionar_arbol_categorias),
+    ("Árbol binario de búsqueda: índice de títulos", gestionar_arbol_binario),
+    ("Prestar libro", prestar_libro),
+    ("Devolver libro", devolver_libro),
+]
+
+
 def main():
     while True:
         print("\n===== BIBLIOTECA INTELIGENTE =====")
-        print("1. Registrar libro")
-        print("2. Mostrar libros")
-        print("3. Buscar libro")
-        print("4. Ordenar libros")
-        print("5. Trabajar con vectores")
-        print("6. Trabajar con matrices")
-        print("7. Búsqueda lineal")
-        print("8. Búsqueda binaria")
-        print("9. Administrar lista simplemente enlazada")
-        print("10. Administrar pila (LIFO)")
-        print("11. Administrar cola (FIFO)")
-        print("12. Ejemplo de recursividad (factorial)")
-        print("13. Administrar árbol binario de búsqueda")
+        for i, (texto, _) in enumerate(OPCIONES, start=1):
+            print(f"{i}. {texto}")
         print("0. Salir")
-        opcion = input("Seleccione: ").strip()
-
-        if opcion == "1":
-            agregar_libro()
-        elif opcion == "2":
-            mostrar_libros()
-        elif opcion == "3":
-            buscar_libro()
-        elif opcion == "4":
-            ordenar_libros()
-        elif opcion == "5":
-            trabajar_con_vectores()
-        elif opcion == "6":
-            trabajar_con_matrices()
-        elif opcion == "7":
-            titulo = input("\nIngrese el título exacto a buscar: ").strip()
-            resultado = busqueda_lineal(titulo)
-            print(f"Encontrado en posición {resultado}" if resultado != -1 else "No encontrado")
-        elif opcion == "8":
-            titulo = input("\nIngrese el título exacto a buscar: ").strip()
-            resultado = busqueda_binaria(titulo)
-            print(f"Encontrado en posición {resultado} (lista ordenada)" if resultado != -1 else "No encontrado")
-        elif opcion == "9":
-            gestionar_lista_enlazada()
-        elif opcion == "10":
-            gestionar_pila()
-        elif opcion == "11":
-            gestionar_cola()
-        elif opcion == "12":
-            trabajar_con_recursividad()
-        elif opcion == "13":
-            gestionar_arbol_binario()
-        elif opcion == "0":
+        try:
+            opcion = leer_texto("Seleccione: ")
+        except (EOFError, KeyboardInterrupt):
+            print("\nSaliendo...")
+            break
+        if opcion == "0":
             print("Saliendo...")
             break
+        if opcion.isdigit() and 1 <= int(opcion) <= len(OPCIONES):
+            try:
+                OPCIONES[int(opcion) - 1][1]()
+            except (EOFError, KeyboardInterrupt):
+                print("\nOperación cancelada.")
         else:
             print("Opción inválida.")
 

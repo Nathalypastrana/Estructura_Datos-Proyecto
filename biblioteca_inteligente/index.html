@@ -3,45 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#07110d">
-  <title>Biblioteca inteligente · Terminal</title>
+  <title>Biblioteca inteligente</title>
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
 </head>
 <body>
-  <main class="terminal-page">
-    <header class="page-header">
-      <div class="brand-mark" aria-hidden="true">BI</div>
-      <div class="page-title">
-        <p>ESTRUCTURAS DE DATOS · PROYECTO</p>
-        <h1>Biblioteca inteligente</h1>
-      </div>
-      <div class="runtime-badge"><span></span> SIMULADOR DE main.py</div>
-    </header>
+  <header class="top">
+    <div class="brand"><span class="logo">BI</span>
+      <div><h1>Biblioteca inteligente</h1><p>Estructuras de datos aplicadas a una biblioteca</p></div>
+    </div>
+    <nav id="tabs" role="tablist">
+      <button role="tab" data-tab="catalogo" class="on">Catálogo</button>
+      <button role="tab" data-tab="estanteria">Estantería</button>
+      <button role="tab" data-tab="prestamos">Préstamos</button>
+      <button role="tab" data-tab="busquedas">Búsquedas</button>
+      <button role="tab" data-tab="arboles">Árboles</button>
+      <button role="tab" data-tab="grafo">Grafo</button>
+      <button role="tab" data-tab="analisis">Vectores y recursión</button>
+    </nav>
+  </header>
 
-    <section class="terminal-window" aria-label="Simulador de terminal de Biblioteca inteligente">
-      <header class="window-bar">
-        <div class="window-controls" aria-hidden="true"><span></span><span></span><span></span></div>
-        <div class="window-path"><span>~/</span>biblioteca_inteligente/main.py</div>
-        <div class="window-state"><span></span> EN EJECUCIÓN</div>
-      </header>
-
-      <div class="terminal-screen" id="terminal-output" role="log" aria-live="polite" aria-relevant="additions"></div>
-
-      <form class="terminal-input-row" id="terminal-form" autocomplete="off">
-        <label id="prompt-label" for="terminal-input">Seleccione:</label>
-        <input id="terminal-input" name="command" type="text" spellcheck="false" autocomplete="off" autofocus aria-label="Entrada de terminal">
-        <button type="submit" aria-label="Ejecutar comando">↵</button>
-      </form>
-
-      <footer class="terminal-footer">
-        <span><kbd>ENTER</kbd> ejecutar comando</span>
-        <button id="restart-button" type="button" hidden>↻ Reiniciar programa</button>
-        <span class="footer-path">main.py · menú interactivo</span>
-      </footer>
-    </section>
-
-    <p class="page-caption">Escribe una opción igual que en la terminal y presiona Enter.</p>
-  </main>
+  <main id="vista"></main>
+  <div id="aviso" role="status" aria-live="polite"></div>
 </body>
 </html>

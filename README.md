@@ -53,5 +53,10 @@ No requiere librerías externas. Arranca con un catálogo de ejemplo de 11 libro
 4. `19` Devolver `LIB-001` → Luis lo devuelve; sin espera, va a la **pila** de devoluciones.
 5. `11` → Reacomodar: saca de la pila el último libro devuelto y dice su estante y posición (**matriz**).
 
-> Nota: la carpeta contiene además `index.html`, `app.js` y `styles.css`, un simulador web de la
-> versión anterior de `main.py`. No refleja todavía esta versión.
+## Front web
+
+Abre `biblioteca_inteligente/index.html` en el navegador (no necesita servidor ni instalación).
+Muestra visualmente cada estructura: lista enlazada, estantería (matriz), cola y pila de préstamos,
+comparación de búsquedas lineal / binaria / hash, árbol de categorías, ABB, grafo con BFS y DFS,
+vectores y recursividad. Replica en JavaScript las mismas reglas de `biblioteca.py`
+(`index.html`, `styles.css`, `app.js`).

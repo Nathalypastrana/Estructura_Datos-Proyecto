@@ -332,32 +332,6 @@ def gestionar_arbol_binario():
             print("Opción inválida.")
 
 
-# ------------------------------------------------------ 16-17: grafo
-def mostrar_grafo():
-    titulo_menu("GRAFO DE LIBROS RELACIONADOS")
-    for libro in biblioteca.catalogo:
-        vecinos = [biblioteca.por_codigo.obtener(v)
-                   for v in biblioteca.relaciones.vecinos(libro.codigo)]
-        print(f"\n{libro.titulo} ({libro.codigo}) se relaciona con {len(vecinos)}:")
-        for otro in vecinos:
-            print(f"   - {otro.titulo}  [{biblioteca.motivo_relacion(libro, otro)}]")
-
-
-def recorrer_grafo():
-    titulo_menu("RECOMENDACIONES (BFS) Y EXPLORACIÓN (DFS)")
-    libro = elegir_libro("Código del libro que te gustó: ")
-    if not libro:
-        return
-    print(f'\nBFS - recomendaciones desde "{libro.titulo}" (de más cerca a más lejos):')
-    recomendados = biblioteca.recomendaciones_bfs(libro.codigo)
-    if not recomendados:
-        print("   Este libro todavía no tiene relaciones.")
-    for otro, distancia in recomendados:
-        print(f"   Nivel {distancia}: {otro.titulo} ({otro.autor})")
-    print(f'\nDFS - exploración en profundidad desde "{libro.titulo}":')
-    print("   " + " → ".join(l.titulo for l in biblioteca.exploracion_dfs(libro.codigo)))
-
-
 # ---------------------------------------------------------------- menú
 OPCIONES = [
     ("Registrar libro", registrar_libro),
@@ -375,8 +349,6 @@ OPCIONES = [
     ("Recursividad: conteos y órdenes de lectura", trabajar_con_recursividad),
     ("Árbol: categorías (género → autor → libro)", gestionar_arbol_categorias),
     ("Árbol binario de búsqueda: índice de títulos", gestionar_arbol_binario),
-    ("Grafo: libros relacionados", mostrar_grafo),
-    ("BFS y DFS: recomendaciones", recorrer_grafo),
     ("Prestar libro", prestar_libro),
     ("Devolver libro", devolver_libro),
 ]

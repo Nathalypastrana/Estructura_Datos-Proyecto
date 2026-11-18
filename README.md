@@ -50,6 +50,10 @@ El proyecto contempla los siguientes procesos:
 
 ## Estructuras de datos utilizadas
 
+### Versión de consola en Python
+
+Ejecuta `python3 biblioteca_inteligente/main.py` para usar el menú de consola. El catálogo se almacena en una lista simplemente enlazada; el menú también permite probar una pila LIFO, una cola FIFO, el factorial recursivo y un árbol binario de búsqueda con inserción, búsqueda y recorrido inorden.
+
 ### Vectores
 
 Se utilizarán vectores para almacenar y manipular colecciones de libros y sus respectivos datos.

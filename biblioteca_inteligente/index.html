@@ -3,128 +3,45 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f6f4ef">
-  <title>Biblioteca inteligente</title>
+  <meta name="theme-color" content="#07110d">
+  <title>Biblioteca inteligente · Terminal</title>
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar" aria-label="Navegación principal">
-      <a class="brand" href="#inicio" aria-label="Biblioteca inteligente, inicio">
-        <span class="brand-mark" aria-hidden="true">b.</span>
-        <span>lectura<span class="brand-light">/</span>club</span>
-      </a>
-      <div class="side-label">TU ESPACIO</div>
-      <nav>
-        <a class="nav-link active" href="#inicio"><span class="nav-icon">▦</span> Biblioteca</a>
-        <a class="nav-link" href="#coleccion"><span class="nav-icon">▤</span> Colección <span class="nav-count" id="nav-count">5</span></a>
-        <a class="nav-link" href="#estructuras"><span class="nav-icon">⌘</span> Estructuras</a>
-      </nav>
-      <div class="sidebar-note">
-        <span class="note-icon">✳</span>
-        <strong>Un libro puede cambiarlo todo.</strong>
-        <span>Encuentra tu próxima historia.</span>
+  <main class="terminal-page">
+    <header class="page-header">
+      <div class="brand-mark" aria-hidden="true">BI</div>
+      <div class="page-title">
+        <p>ESTRUCTURAS DE DATOS · PROYECTO</p>
+        <h1>Biblioteca inteligente</h1>
       </div>
-      <div class="sidebar-footer"><span class="status-dot"></span> Tu biblioteca está al día</div>
-    </aside>
+      <div class="runtime-badge"><span></span> SIMULADOR DE main.py</div>
+    </header>
 
-    <main class="main-content" id="inicio">
-      <header class="topbar">
-        <div class="breadcrumb">INICIO <span>/</span> MI BIBLIOTECA</div>
-        <div class="profile"><span class="profile-avatar">L</span><span>Mi biblioteca</span><span class="profile-chevron">⌄</span></div>
+    <section class="terminal-window" aria-label="Simulador de terminal de Biblioteca inteligente">
+      <header class="window-bar">
+        <div class="window-controls" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="window-path"><span>~/</span>biblioteca_inteligente/main.py</div>
+        <div class="window-state"><span></span> EN EJECUCIÓN</div>
       </header>
 
-      <section class="welcome">
-        <div>
-          <div class="eyebrow"><span class="eyebrow-line"></span> TU RINCÓN DE LECTURA</div>
-          <h1>Historias que<br><em>te esperan.</em></h1>
-          <p class="welcome-copy">Organiza tus libros, encuentra tu próxima lectura<br class="desktop-break"> y disfruta el placer de perderte en una historia.</p>
-          <button class="primary-button" id="open-add"><span>＋</span> Agregar un libro</button>
-        </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="sun"></div><div class="plant plant-one">♧</div><div class="plant plant-two">♧</div>
-          <div class="book-stack"><div class="book book-a"><span>la vida<br>secreta</span></div><div class="book book-b"><span>PEQUEÑAS<br>HISTORIAS</span></div><div class="book book-c"><span>un lugar<br>para volver</span></div><div class="book book-d"></div></div>
-          <div class="art-caption">LEE A TU<br>PROPIO RITMO <span>✳</span></div>
-        </div>
-      </section>
+      <div class="terminal-screen" id="terminal-output" role="log" aria-live="polite" aria-relevant="additions"></div>
 
-      <section class="stats" aria-label="Resumen de la biblioteca">
-        <div class="stat-card"><div class="stat-icon violet">▤</div><div><span class="stat-label">EN TU COLECCIÓN</span><strong id="total-books">5</strong><span class="stat-foot">libros guardados</span></div><span class="stat-decoration">↗</span></div>
-        <div class="stat-card"><div class="stat-icon peach">⌕</div><div><span class="stat-label">ORDEN ALFABÉTICO</span><strong class="stat-word" id="sort-status">A — Z</strong><span class="stat-foot">listos para explorar</span></div><span class="stat-decoration">✳</span></div>
-        <div class="stat-card quote-card"><div class="quote-mark">“</div><div><span class="stat-label">UN RECORDATORIO</span><strong class="quote-text">Solo una página más.</strong><span class="stat-foot">y de pronto, es de noche.</span></div></div>
-      </section>
+      <form class="terminal-input-row" id="terminal-form" autocomplete="off">
+        <label id="prompt-label" for="terminal-input">Seleccione:</label>
+        <input id="terminal-input" name="command" type="text" spellcheck="false" autocomplete="off" autofocus aria-label="Entrada de terminal">
+        <button type="submit" aria-label="Ejecutar comando">↵</button>
+      </form>
 
-      <section class="collection" id="coleccion">
-        <div class="section-heading">
-          <div><div class="eyebrow"><span class="eyebrow-line"></span> PARA TI</div><h2>Tu colección <span id="collection-count">(5)</span></h2></div>
-          <button class="sort-button" id="sort-button"><span>↕</span> Ordenar A — Z</button>
-        </div>
-        <div class="toolbar">
-          <label class="search-box"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Busca un título en tu colección..." autocomplete="off"><kbd>⌘ K</kbd></label>
-          <div class="search-mode" role="group" aria-label="Método de búsqueda"><button class="mode-button active" data-mode="lineal">Lineal</button><button class="mode-button" data-mode="binaria">Binaria</button></div>
-        </div>
-        <div class="search-feedback" id="search-feedback" aria-live="polite"></div>
-        <div class="book-list" id="book-list" aria-live="polite"></div>
-        <div class="empty-state" id="empty-state" hidden><span>⌕</span><h3>No encontramos ese libro</h3><p>Prueba con otro título o agrega un libro nuevo a tu colección.</p><button class="text-button" id="clear-search">Limpiar búsqueda</button></div>
-        <div class="list-footer"><span id="list-summary">Mostrando 5 libros</span><span>HECHO CON <span class="heart">♥</span> Y MUCHAS HISTORIAS</span></div>
-      </section>
-      <section class="structures" id="estructuras">
-        <div class="section-heading structure-heading">
-          <div><div class="eyebrow"><span class="eyebrow-line"></span> APRENDE HACIENDO</div><h2>Laboratorio de estructuras <span>· 4 demos</span></h2></div>
-        </div>
-        <p class="structures-intro">Explora cómo se organizan los datos y prueba las operaciones principales.</p>
-        <div class="structure-grid">
-          <article class="structure-card linked-card">
-            <div class="structure-card-heading"><span class="structure-icon lilac">↗</span><div><h3>Lista simplemente enlazada</h3><p>Cada nodo apunta al siguiente.</p></div><span class="complexity">insertar al final O(n)</span></div>
-            <div class="linked-visual" id="linked-visual" aria-live="polite"></div>
-            <div class="structure-controls"><input id="linked-input" maxlength="32" placeholder="Nuevo nodo" aria-label="Valor para agregar a la lista enlazada"><button id="linked-add">Agregar</button><button class="outline-control" id="linked-remove">Quitar primero</button></div>
-            <div class="structure-result" id="linked-result">Recorrido de cabeza a cola · buscar O(n)</div>
-          </article>
+      <footer class="terminal-footer">
+        <span><kbd>ENTER</kbd> ejecutar comando</span>
+        <button id="restart-button" type="button" hidden>↻ Reiniciar programa</button>
+        <span class="footer-path">main.py · menú interactivo</span>
+      </footer>
+    </section>
 
-          <article class="structure-card">
-            <div class="structure-card-heading"><span class="structure-icon peach-icon">▥</span><div><h3>Pila · LIFO</h3><p>El último en entrar sale primero.</p></div><span class="complexity">push / pop O(1)</span></div>
-            <div class="linear-visual stack-visual" id="stack-visual" aria-live="polite"></div>
-            <div class="structure-controls"><input id="stack-input" maxlength="24" placeholder="Elemento" aria-label="Elemento para apilar"><button id="stack-push">Apilar</button><button class="outline-control" id="stack-pop">Desapilar</button></div>
-            <div class="structure-result" id="stack-result">La cima de la pila aparece arriba.</div>
-          </article>
-
-          <article class="structure-card">
-            <div class="structure-card-heading"><span class="structure-icon green-icon">⇥</span><div><h3>Cola · FIFO</h3><p>El primero en entrar sale primero.</p></div><span class="complexity">encolar / desencolar O(1)</span></div>
-            <div class="linear-visual queue-visual" id="queue-visual" aria-live="polite"></div>
-            <div class="structure-controls"><input id="queue-input" maxlength="24" placeholder="Elemento" aria-label="Elemento para agregar a la cola"><button id="queue-enqueue">Encolar</button><button class="outline-control" id="queue-dequeue">Desencolar</button></div>
-            <div class="structure-result" id="queue-result">La salida está a la izquierda.</div>
-          </article>
-
-          <article class="structure-card recursion-card">
-            <div class="structure-card-heading"><span class="structure-icon blue-icon">↻</span><div><h3>Recursividad</h3><p>La función se resuelve llamándose a sí misma.</p></div><span class="complexity">factorial O(n)</span></div>
-            <div class="recursion-demo"><label for="factorial-input">Calcula factorial (0–12)</label><div class="structure-controls"><input id="factorial-input" type="number" min="0" max="12" value="5"><button id="factorial-run">Calcular</button></div><div class="recursion-result" id="factorial-result" aria-live="polite">5! = 120</div></div>
-          </article>
-
-          <article class="structure-card tree-card">
-            <div class="structure-card-heading"><span class="structure-icon gold-icon">⌘</span><div><h3>Árbol binario de búsqueda</h3><p>Menores a la izquierda, mayores a la derecha.</p></div><span class="complexity">buscar O(log n)*</span></div>
-            <div class="tree-visual" id="tree-visual" aria-live="polite"></div>
-            <div class="structure-controls"><input id="tree-input" type="number" placeholder="Número" aria-label="Número para insertar en el árbol"><button id="tree-insert">Insertar</button><button class="outline-control" id="tree-find">Buscar</button></div>
-            <div class="structure-result" id="tree-result">Inorden: —</div>
-            <div class="tree-footnote">* O(h); puede llegar a O(n) si el árbol queda desbalanceado.</div>
-          </article>
-        </div>
-      </section>
-      <footer class="page-footer">Cada libro es una puerta. <span>¿Cuál vas a abrir hoy?</span></footer>
-    </main>
-  </div>
-
-  <dialog id="add-dialog" class="add-dialog">
-    <form id="add-form" method="dialog">
-      <button type="button" class="dialog-close" id="close-dialog" aria-label="Cerrar">×</button>
-      <div class="eyebrow"><span class="eyebrow-line"></span> NUEVA HISTORIA</div>
-      <h2>Agrega un libro</h2>
-      <p>Haz espacio en tu colección para una nueva lectura.</p>
-      <label for="book-title">Título del libro</label>
-      <input id="book-title" name="title" maxlength="120" required placeholder="Ej. El nombre del viento">
-      <div class="duplicate-message" id="duplicate-message" role="status" aria-live="polite"></div>
-      <div class="dialog-actions"><button type="button" class="secondary-button" id="cancel-add">Cancelar</button><button class="primary-button" type="submit">Guardar libro <span>↗</span></button></div>
-    </form>
-  </dialog>
+    <p class="page-caption">Escribe una opción igual que en la terminal y presiona Enter.</p>
+  </main>
 </body>
 </html>

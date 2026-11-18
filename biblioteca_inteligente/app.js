@@ -5,414 +5,445 @@ const DEFAULT_BOOKS = [
   'Memorias del Subsuelo',
   '1984'
 ];
-const STORAGE_KEY = 'lectura-club-books-v1';
-let books = loadBooks();
-let searchMode = 'lineal';
-let sorted = false;
 
-const list = document.querySelector('#book-list');
-const searchInput = document.querySelector('#search-input');
-const feedback = document.querySelector('#search-feedback');
-const emptyState = document.querySelector('#empty-state');
-const dialog = document.querySelector('#add-dialog');
-const form = document.querySelector('#add-form');
-const titleInput = document.querySelector('#book-title');
+let libros = [...DEFAULT_BOOKS];
+let pila = [];
+let cola = [];
+let inicioCola = 0;
+let raizArbol = null;
+let estadoEntrada = 'menu';
+let textoPrompt = 'Seleccione:';
 
-function loadBooks() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return Array.isArray(saved) && saved.every(book => typeof book === 'string') ? saved : [...DEFAULT_BOOKS];
-  } catch {
-    return [...DEFAULT_BOOKS];
-  }
-}
+const terminal = document.querySelector('#terminal-output');
+const form = document.querySelector('#terminal-form');
+const input = document.querySelector('#terminal-input');
+const promptLabel = document.querySelector('#prompt-label');
+const restartButton = document.querySelector('#restart-button');
 
-function saveBooks() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
-}
-
-function normalize(value) {
-  return value.toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
-function duplicateKey(value) {
-  return normalize(value).replace(/[^a-z0-9]/g, '');
-}
-
-function findMatches(query) {
-  if (!query) return books.map((title, index) => ({ title, index }));
-  if (searchMode === 'binaria') {
-    const ordered = books.map((title, index) => ({ title, index })).sort((a, b) => normalize(a.title).localeCompare(normalize(b.title), 'es'));
-    let left = 0;
-    let right = ordered.length - 1;
-    let match = -1;
-    while (left <= right) {
-      const middle = Math.floor((left + right) / 2);
-      const value = normalize(ordered[middle].title);
-      if (value === query) { match = middle; break; }
-      if (value < query) left = middle + 1;
-      else right = middle - 1;
+function escribir(texto = '', tipo = '') {
+  String(texto).split('\n').forEach(contenido => {
+    const linea = document.createElement('div');
+    linea.className = 'terminal-line';
+    if (!contenido) {
+      linea.classList.add('blank');
+      linea.textContent = ' ';
+    } else {
+      const limpio = contenido.trim();
+      if (tipo) {
+        linea.classList.add(tipo);
+      } else if (limpio.startsWith('=====')) {
+        linea.classList.add('menu-title');
+      } else if (/^(?:\d+|0)\./.test(limpio)) {
+        linea.classList.add('menu-option');
+      } else if (/Opción inválida|no puede estar|número entero válido|debe estar entre|No se encontró|No encontrado/.test(contenido)) {
+        linea.classList.add('warning-line');
+      } else if (/agregado correctamente|Se insertó|Encontrado en posición/.test(contenido)) {
+        linea.classList.add('success-line');
+      }
+      linea.textContent = contenido;
     }
-    if (match < 0) return [];
-    let start = match;
-    while (start > 0 && normalize(ordered[start - 1].title) === query) start--;
-    const matches = [];
-    for (let i = start; i < ordered.length && normalize(ordered[i].title) === query; i++) matches.push(ordered[i]);
-    return matches;
-  }
-  return books.map((title, index) => ({ title, index })).filter(book => normalize(book.title).includes(query));
-}
-
-function render() {
-  const query = normalize(searchInput.value.trim());
-  const matches = findMatches(query);
-  list.replaceChildren();
-  matches.forEach(({ title, index }, visibleIndex) => {
-    const row = document.createElement('article');
-    row.className = 'book-row';
-    const number = document.createElement('span');
-    number.className = 'book-number';
-    number.textContent = String(visibleIndex + 1).padStart(2, '0');
-    const cover = document.createElement('span');
-    cover.className = 'cover';
-    cover.setAttribute('aria-hidden', 'true');
-    cover.textContent = title.trim().charAt(0).toLocaleUpperCase('es') || 'L';
-    const description = document.createElement('div');
-    const name = document.createElement('div');
-    name.className = 'book-title';
-    name.textContent = title;
-    const subtitle = document.createElement('div');
-    subtitle.className = 'book-subtitle';
-    subtitle.textContent = 'En tu colección';
-    description.append(name, subtitle);
-    const tag = document.createElement('span');
-    tag.className = 'book-tag';
-    tag.textContent = '✦  Para leer';
-    const remove = document.createElement('button');
-    remove.className = 'delete-button';
-    remove.type = 'button';
-    remove.setAttribute('aria-label', `Eliminar ${title}`);
-    remove.title = 'Eliminar libro';
-    remove.textContent = '×';
-    remove.addEventListener('click', () => {
-      books.splice(index, 1);
-      saveBooks();
-      render();
-    });
-    row.append(number, cover, description, tag, remove);
-    list.append(row);
+    terminal.append(linea);
   });
-
-  const hasQuery = Boolean(query);
-  emptyState.hidden = matches.length > 0;
-  list.hidden = matches.length === 0;
-  emptyState.querySelector('h3').textContent = books.length === 0
-    ? 'Tu colección está esperando su primer libro'
-    : 'No encontramos ese libro';
-  emptyState.querySelector('p').textContent = books.length === 0
-    ? 'Agrega un título para empezar a construir tu biblioteca.'
-    : 'Prueba con otro título o agrega un libro nuevo a tu colección.';
-  feedback.textContent = hasQuery
-    ? (matches.length
-      ? `${matches.length} resultado${matches.length === 1 ? '' : 's'} · búsqueda ${searchMode}${searchMode === 'binaria' ? ' exacta' : ''}`
-      : `Sin coincidencias · búsqueda ${searchMode}${searchMode === 'binaria' ? ' exacta' : ''}`)
-    : '';
-  document.querySelector('#total-books').textContent = books.length;
-  document.querySelector('#nav-count').textContent = books.length;
-  document.querySelector('#collection-count').textContent = `(${books.length})`;
-  document.querySelector('#list-summary').textContent = `Mostrando ${matches.length} de ${books.length} libros`;
-  document.querySelector('#sort-status').textContent = sorted ? 'A — Z' : 'Personal';
-  document.querySelector('#sort-button').innerHTML = `<span>↕</span> ${sorted ? 'Ordenado A — Z' : 'Ordenar A — Z'}`;
+  terminal.scrollTop = terminal.scrollHeight;
 }
 
-document.querySelector('#open-add').addEventListener('click', () => {
-  dialog.showModal();
-  titleInput.focus();
-});
-document.querySelector('#close-dialog').addEventListener('click', () => dialog.close());
-document.querySelector('#cancel-add').addEventListener('click', () => dialog.close());
+function establecerPrompt(texto, estado) {
+  textoPrompt = texto;
+  estadoEntrada = estado;
+  promptLabel.textContent = texto;
+  input.disabled = estado === 'finalizado';
+  restartButton.hidden = estado !== 'finalizado';
+  if (!input.disabled) input.focus();
+}
+
+function pedirEntrada(texto, estado, lineaEnBlanco = false) {
+  if (lineaEnBlanco) escribir('');
+  establecerPrompt(texto, estado);
+}
+
+function mostrarMenuPrincipal() {
+  escribir('\n===== BIBLIOTECA INTELIGENTE =====');
+  escribir('1. Registrar libro');
+  escribir('2. Mostrar libros');
+  escribir('3. Buscar libro');
+  escribir('4. Ordenar libros');
+  escribir('5. Trabajar con vectores');
+  escribir('6. Trabajar con matrices');
+  escribir('7. Búsqueda lineal');
+  escribir('8. Búsqueda binaria');
+  escribir('9. Administrar lista simplemente enlazada');
+  escribir('10. Administrar pila (LIFO)');
+  escribir('11. Administrar cola (FIFO)');
+  escribir('12. Ejemplo de recursividad (factorial)');
+  escribir('13. Administrar árbol binario de búsqueda');
+  escribir('0. Salir');
+  establecerPrompt('Seleccione:', 'menu');
+}
+
+function mostrarLibros() {
+  if (libros.length === 0) {
+    escribir('\nNo hay libros disponibles');
+    return;
+  }
+  escribir('\n LIBROS DISPONIBLES');
+  libros.forEach((libro, indice) => escribir(`${indice + 1}. ${libro}`));
+}
+
+function representarTexto(texto) {
+  const comilla = texto.includes("'") && !texto.includes('"') ? '"' : "'";
+  const escapado = texto
+    .replace(/\\/g, '\\\\')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\t/g, '\\t')
+    .replace(new RegExp(comilla, 'g'), `\\${comilla}`);
+  return `${comilla}${escapado}${comilla}`;
+}
+
+function representarLista(valores, sonTextos = false) {
+  return `[${valores.map(valor => sonTextos ? representarTexto(valor) : String(valor)).join(', ')}]`;
+}
+
+function agregarLibro(titulo, volverAlMenu) {
+  if (titulo) {
+    libros.push(titulo);
+    escribir(`Libro "${titulo}" agregado correctamente.`, 'success-line');
+  } else {
+    escribir('El nombre del libro no puede estar vacio.', 'warning-line');
+  }
+  volverAlMenu();
+}
+
+function buscarLibro(termino) {
+  const encontrados = libros
+    .map((libro, indice) => ({ libro, indice }))
+    .filter(({ libro }) => libro.toLowerCase().includes(termino.toLowerCase()));
+  if (encontrados.length === 0) {
+    escribir('No se encontró ningún libro con ese nombre.', 'warning-line');
+    return;
+  }
+  encontrados.forEach(({ libro, indice }) => escribir(`${indice + 1}. ${libro}`));
+}
+
+function buscarLineal(titulo) {
+  return libros.findIndex(libro => libro.toLowerCase() === titulo.toLowerCase());
+}
+
+function buscarBinaria(titulo) {
+  const ordenados = [...libros].sort();
+  let izquierda = 0;
+  let derecha = ordenados.length - 1;
+  while (izquierda <= derecha) {
+    const medio = Math.floor((izquierda + derecha) / 2);
+    const libro = ordenados[medio].toLowerCase();
+    const objetivo = titulo.toLowerCase();
+    if (libro === objetivo) return medio;
+    if (libro < objetivo) izquierda = medio + 1;
+    else derecha = medio - 1;
+  }
+  return -1;
+}
+
+function mostrarVector() {
+  const vector = libros.map(libro => Array.from(libro).length);
+  escribir('\nVector de longitudes de los títulos:');
+  escribir(representarLista(vector));
+}
+
+function mostrarMatriz() {
+  escribir('\nMatriz (índice - título):');
+  libros.forEach((libro, indice) => {
+    escribir(`[${indice + 1}, ${representarTexto(libro)}]`);
+  });
+}
+
+function mostrarMenuLista() {
+  escribir('\n===== LISTA SIMPLEMENTE ENLAZADA =====');
+  mostrarLibros();
+  escribir('1. Agregar libro');
+  escribir('2. Quitar el primer libro');
+  escribir('0. Volver');
+  establecerPrompt('Seleccione:', 'lista');
+}
+
+function mostrarMenuPila() {
+  escribir('\n===== PILA (LIFO) =====');
+  escribir(`Elementos (cima primero): ${representarLista([...pila].reverse(), true)}`);
+  escribir('1. Apilar elemento');
+  escribir('2. Desapilar elemento');
+  escribir('0. Volver');
+  establecerPrompt('Seleccione:', 'pila');
+}
+
+function mostrarMenuCola() {
+  escribir('\n===== COLA (FIFO) =====');
+  escribir(`Elementos (primero en salir): ${representarLista(cola.slice(inicioCola), true)}`);
+  escribir('1. Encolar elemento');
+  escribir('2. Desencolar elemento');
+  escribir('0. Volver');
+  establecerPrompt('Seleccione:', 'cola');
+}
+
+function factorialRecursivo(numero) {
+  if (numero <= 1n) return 1n;
+  return numero * factorialRecursivo(numero - 1n);
+}
+
+function leerEntero(valor) {
+  if (!/^[+-]?\d+$/.test(valor)) return null;
+  return BigInt(valor);
+}
+
+function insertarArbol(nodo, valor) {
+  if (nodo === null) return { valor, izquierda: null, derecha: null };
+  if (valor < nodo.valor) nodo.izquierda = insertarArbol(nodo.izquierda, valor);
+  else if (valor > nodo.valor) nodo.derecha = insertarArbol(nodo.derecha, valor);
+  return nodo;
+}
+
+function contieneArbol(nodo, valor) {
+  if (nodo === null) return false;
+  if (valor === nodo.valor) return true;
+  return valor < nodo.valor
+    ? contieneArbol(nodo.izquierda, valor)
+    : contieneArbol(nodo.derecha, valor);
+}
+
+function recorridoInorden(nodo, resultado = []) {
+  if (nodo === null) return resultado;
+  recorridoInorden(nodo.izquierda, resultado);
+  resultado.push(nodo.valor);
+  recorridoInorden(nodo.derecha, resultado);
+  return resultado;
+}
+
+function mostrarMenuArbol() {
+  escribir('\n===== ÁRBOL BINARIO DE BÚSQUEDA =====');
+  const valores = recorridoInorden(raizArbol).map(String);
+  escribir(`Recorrido inorden: ${valores.length ? representarLista(valores) : 'árbol vacío'}`);
+  escribir('1. Insertar número');
+  escribir('2. Buscar número');
+  escribir('0. Volver');
+  establecerPrompt('Seleccione:', 'arbol');
+}
+
+function mostrarMenuDespuesDeAccion() {
+  if (estadoEntrada.startsWith('lista')) mostrarMenuLista();
+  else if (estadoEntrada.startsWith('pila')) mostrarMenuPila();
+  else if (estadoEntrada.startsWith('cola')) mostrarMenuCola();
+  else if (estadoEntrada.startsWith('arbol')) mostrarMenuArbol();
+  else mostrarMenuPrincipal();
+}
+
+function procesarMenuPrincipal(valor) {
+  switch (valor) {
+    case '1':
+      pedirEntrada('Ingrese el nombre del libro:', 'agregar-libro', true);
+      break;
+    case '2':
+      mostrarLibros();
+      mostrarMenuPrincipal();
+      break;
+    case '3':
+      pedirEntrada('Ingrese el nombre a buscar:', 'buscar-libro', true);
+      break;
+    case '4':
+      libros.sort();
+      escribir('\nLibros ordenados alfabéticamente:');
+      mostrarLibros();
+      mostrarMenuPrincipal();
+      break;
+    case '5':
+      mostrarVector();
+      mostrarMenuPrincipal();
+      break;
+    case '6':
+      mostrarMatriz();
+      mostrarMenuPrincipal();
+      break;
+    case '7':
+      pedirEntrada('Ingrese el título exacto a buscar:', 'busqueda-lineal', true);
+      break;
+    case '8':
+      pedirEntrada('Ingrese el título exacto a buscar:', 'busqueda-binaria', true);
+      break;
+    case '9':
+      mostrarMenuLista();
+      break;
+    case '10':
+      mostrarMenuPila();
+      break;
+    case '11':
+      mostrarMenuCola();
+      break;
+    case '12':
+      pedirEntrada('Ingrese un entero entre 0 y 12 para calcular su factorial:', 'factorial', true);
+      break;
+    case '13':
+      mostrarMenuArbol();
+      break;
+    case '0':
+      escribir('Saliendo...');
+      establecerPrompt('', 'finalizado');
+      break;
+    default:
+      escribir('Opción inválida.', 'warning-line');
+      mostrarMenuPrincipal();
+  }
+}
+
+function procesarEntrada(valor) {
+  switch (estadoEntrada) {
+    case 'menu':
+      procesarMenuPrincipal(valor);
+      break;
+    case 'agregar-libro':
+      agregarLibro(valor, mostrarMenuPrincipal);
+      break;
+    case 'buscar-libro':
+      buscarLibro(valor);
+      mostrarMenuPrincipal();
+      break;
+    case 'busqueda-lineal': {
+      const resultado = buscarLineal(valor);
+      escribir(resultado !== -1 ? `Encontrado en posición ${resultado}` : 'No encontrado',
+        resultado !== -1 ? 'success-line' : 'warning-line');
+      mostrarMenuPrincipal();
+      break;
+    }
+    case 'busqueda-binaria': {
+      const resultado = buscarBinaria(valor);
+      escribir(
+        resultado !== -1 ? `Encontrado en posición ${resultado} (lista ordenada)` : 'No encontrado',
+        resultado !== -1 ? 'success-line' : 'warning-line'
+      );
+      mostrarMenuPrincipal();
+      break;
+    }
+    case 'lista':
+      if (valor === '1') pedirEntrada('Ingrese el nombre del libro:', 'lista-agregar', true);
+      else if (valor === '2') {
+        const titulo = libros.shift();
+        escribir(titulo ? `Se quitó "${titulo}".` : 'La lista está vacía.');
+        mostrarMenuLista();
+      } else if (valor === '0') mostrarMenuPrincipal();
+      else {
+        escribir('Opción inválida.', 'warning-line');
+        mostrarMenuLista();
+      }
+      break;
+    case 'lista-agregar':
+      agregarLibro(valor, mostrarMenuLista);
+      break;
+    case 'pila':
+      if (valor === '1') pedirEntrada('Ingrese el elemento:', 'pila-apilar');
+      else if (valor === '2') {
+        const elemento = pila.pop();
+        escribir(elemento ? `Salió de la cima: ${elemento}` : 'La pila está vacía.');
+        mostrarMenuPila();
+      } else if (valor === '0') mostrarMenuPrincipal();
+      else {
+        escribir('Opción inválida.', 'warning-line');
+        mostrarMenuPila();
+      }
+      break;
+    case 'pila-apilar':
+      if (valor) pila.push(valor);
+      else escribir('El elemento no puede estar vacío.', 'warning-line');
+      mostrarMenuPila();
+      break;
+    case 'cola':
+      if (valor === '1') pedirEntrada('Ingrese el elemento:', 'cola-encolar');
+      else if (valor === '2') {
+        const elemento = inicioCola < cola.length ? cola[inicioCola++] : null;
+        if (inicioCola === cola.length) {
+          cola = [];
+          inicioCola = 0;
+        }
+        escribir(elemento ? `Salió de la cola: ${elemento}` : 'La cola está vacía.');
+        mostrarMenuCola();
+      } else if (valor === '0') mostrarMenuPrincipal();
+      else {
+        escribir('Opción inválida.', 'warning-line');
+        mostrarMenuCola();
+      }
+      break;
+    case 'cola-encolar':
+      if (valor) cola.push(valor);
+      else escribir('El elemento no puede estar vacío.', 'warning-line');
+      mostrarMenuCola();
+      break;
+    case 'factorial': {
+      const numero = leerEntero(valor);
+      if (numero === null) {
+        escribir('Ingrese un número entero válido.', 'warning-line');
+      } else if (numero < 0n || numero > 12n) {
+        escribir('El número debe estar entre 0 y 12.', 'warning-line');
+      } else {
+        escribir(`${numero}! = ${factorialRecursivo(numero)}`, 'success-line');
+      }
+      mostrarMenuPrincipal();
+      break;
+    }
+    case 'arbol':
+      if (valor === '1') pedirEntrada('Ingrese el número:', 'arbol-insertar');
+      else if (valor === '2') pedirEntrada('Ingrese el número a buscar:', 'arbol-buscar');
+      else if (valor === '0') mostrarMenuPrincipal();
+      else {
+        escribir('Opción inválida.', 'warning-line');
+        mostrarMenuArbol();
+      }
+      break;
+    case 'arbol-insertar': {
+      const numero = leerEntero(valor);
+      if (numero === null) {
+        escribir('Ingrese un número entero válido.', 'warning-line');
+      } else if (contieneArbol(raizArbol, numero)) {
+        escribir(`${numero} ya existe; no se permiten duplicados.`);
+      } else {
+        raizArbol = insertarArbol(raizArbol, numero);
+        escribir(`Se insertó ${numero}.`, 'success-line');
+      }
+      mostrarMenuArbol();
+      break;
+    }
+    case 'arbol-buscar': {
+      const numero = leerEntero(valor);
+      if (numero === null) {
+        escribir('Ingrese un número entero válido.', 'warning-line');
+      } else {
+        escribir(
+          contieneArbol(raizArbol, numero)
+            ? `${numero} está en el árbol.`
+            : `${numero} no está en el árbol.`
+        );
+      }
+      mostrarMenuArbol();
+      break;
+    }
+    default:
+      mostrarMenuPrincipal();
+  }
+}
+
 form.addEventListener('submit', event => {
   event.preventDefault();
-  const title = titleInput.value.trim();
-  if (!title) return;
-  const existingTitle = books.find(book => duplicateKey(book) === duplicateKey(title));
-  const duplicateMessage = document.querySelector('#duplicate-message');
-  if (existingTitle) {
-    duplicateMessage.textContent = `“${existingTitle}” ya está en tu biblioteca. No se agregó otra copia.`;
-    titleInput.setAttribute('aria-invalid', 'true');
-    titleInput.focus();
-    return;
-  }
-  duplicateMessage.textContent = '';
-  titleInput.removeAttribute('aria-invalid');
-  books.push(title);
-  saveBooks();
-  searchInput.value = '';
-  titleInput.value = '';
-  sorted = false;
-  dialog.close();
-  render();
-});
-titleInput.addEventListener('input', () => {
-  document.querySelector('#duplicate-message').textContent = '';
-  titleInput.removeAttribute('aria-invalid');
-});
-document.querySelector('#sort-button').addEventListener('click', () => {
-  books.sort((a, b) => normalize(a).localeCompare(normalize(b), 'es'));
-  sorted = true;
-  saveBooks();
-  render();
-});
-document.querySelectorAll('.mode-button').forEach(button => button.addEventListener('click', () => {
-  searchMode = button.dataset.mode;
-  document.querySelectorAll('.mode-button').forEach(item => item.classList.toggle('active', item === button));
-  render();
-}));
-searchInput.addEventListener('input', render);
-document.querySelector('#clear-search').addEventListener('click', () => {
-  searchInput.value = '';
-  render();
-  searchInput.focus();
-});
-document.addEventListener('keydown', event => {
-  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-    event.preventDefault();
-    searchInput.focus();
-  }
-  if (event.key === 'Escape' && dialog.open) dialog.close();
-});
-
-render();
-
-// Demonstrations below use independent structures so they do not modify the catalog.
-class LinkedNode {
-  constructor(value) { this.value = value; this.next = null; }
-}
-class SinglyLinkedList {
-  constructor(values = []) {
-    this.head = null;
-    values.forEach(value => this.append(value));
-  }
-  append(value) {
-    const node = new LinkedNode(value);
-    if (!this.head) { this.head = node; return; }
-    let current = this.head;
-    while (current.next) current = current.next;
-    current.next = node;
-  }
-  removeFirst() {
-    if (!this.head) return null;
-    const value = this.head.value;
-    this.head = this.head.next;
-    return value;
-  }
-  values() {
-    const result = [];
-    for (let current = this.head; current; current = current.next) result.push(current.value);
-    return result;
-  }
-}
-
-const linkedList = new SinglyLinkedList(['Cien años', 'El principito', '1984']);
-const stack = ['Don Quijote', 'Memorias'];
-const queue = ['Cien años', 'El principito'];
-let queueFront = 0;
-
-function renderLinkedList() {
-  const visual = document.querySelector('#linked-visual');
-  visual.replaceChildren();
-  if (!linkedList.head) return;
-  const headLabel = document.createElement('span');
-  headLabel.className = 'head-label';
-  headLabel.textContent = 'HEAD';
-  visual.append(headLabel);
-  linkedList.values().forEach((value, index) => {
-    const node = document.createElement('span');
-    node.className = 'linked-node';
-    const box = document.createElement('span');
-    box.className = 'node-box';
-    box.textContent = value;
-    node.append(box);
-    const next = document.createElement('span');
-    next.className = 'node-next';
-    next.textContent = index === linkedList.values().length - 1 ? '∅' : '→';
-    node.append(next);
-    visual.append(node);
-  });
-}
-function renderLinear(items, selector, emptyText) {
-  const visual = document.querySelector(selector);
-  visual.replaceChildren();
-  if (!items.length) {
-    const empty = document.createElement('span');
-    empty.className = 'tree-empty';
-    empty.textContent = emptyText;
-    visual.append(empty);
-    return;
-  }
-  items.forEach(value => {
-    const item = document.createElement('span');
-    item.className = 'linear-item';
-    item.textContent = value;
-    visual.append(item);
-  });
-}
-function attachInputAction(inputSelector, action, resultSelector) {
-  const input = document.querySelector(inputSelector);
-  const value = input.value.trim();
-  if (!value) {
-    document.querySelector(resultSelector).textContent = 'Escribe un valor para continuar.';
-    input.focus();
-    return null;
-  }
+  if (estadoEntrada === 'finalizado') return;
+  const entrada = input.value.trim();
+  escribir(`${textoPrompt} ${input.value}`, 'command-line');
   input.value = '';
-  return value;
-}
-
-document.querySelector('#linked-add').addEventListener('click', () => {
-  const value = attachInputAction('#linked-input', null, '#linked-result');
-  if (value === null) return;
-  linkedList.append(value);
-  renderLinkedList();
-  document.querySelector('#linked-result').textContent = 'Nodo agregado al final · insertar O(n), recorrer O(n).';
-});
-document.querySelector('#linked-remove').addEventListener('click', () => {
-  const removed = linkedList.removeFirst();
-  renderLinkedList();
-  document.querySelector('#linked-result').textContent = removed === null ? 'La lista está vacía.' : `Se quitó “${removed}” desde HEAD · quitar primero O(1).`;
+  procesarEntrada(entrada);
+  if (!input.disabled) input.focus();
 });
 
-document.querySelector('#stack-push').addEventListener('click', () => {
-  const value = attachInputAction('#stack-input', null, '#stack-result');
-  if (value === null) return;
-  stack.push(value);
-  renderLinear([...stack].reverse(), '#stack-visual', 'Pila vacía');
-  document.querySelector('#stack-result').textContent = `“${value}” quedó en la cima · push O(1).`;
-});
-document.querySelector('#stack-pop').addEventListener('click', () => {
-  const value = stack.pop();
-  renderLinear([...stack].reverse(), '#stack-visual', 'Pila vacía');
-  document.querySelector('#stack-result').textContent = value === undefined ? 'La pila está vacía.' : `Salió “${value}” de la cima · pop O(1).`;
+restartButton.addEventListener('click', () => {
+  libros = [...DEFAULT_BOOKS];
+  pila = [];
+  cola = [];
+  inicioCola = 0;
+  raizArbol = null;
+  terminal.replaceChildren();
+  mostrarMenuPrincipal();
 });
 
-document.querySelector('#queue-enqueue').addEventListener('click', () => {
-  const value = attachInputAction('#queue-input', null, '#queue-result');
-  if (value === null) return;
-  queue.push(value);
-  renderLinear(queue.slice(queueFront), '#queue-visual', 'Cola vacía');
-  document.querySelector('#queue-result').textContent = `“${value}” se agregó al final · encolar O(1).`;
-});
-document.querySelector('#queue-dequeue').addEventListener('click', () => {
-  const value = queueFront < queue.length ? queue[queueFront++] : undefined;
-  renderLinear(queue.slice(queueFront), '#queue-visual', 'Cola vacía');
-  document.querySelector('#queue-result').textContent = value === undefined ? 'La cola está vacía.' : `Salió “${value}” por el frente · desencolar O(1) en una cola enlazada.`;
-});
-
-function factorial(number) {
-  if (number <= 1) return 1;
-  return number * factorial(number - 1);
-}
-function calculateFactorial() {
-  const input = document.querySelector('#factorial-input');
-  const result = document.querySelector('#factorial-result');
-  const number = Number(input.value);
-  if (!Number.isInteger(number) || number < 0 || number > 12) {
-    result.textContent = 'Elige un entero entre 0 y 12.';
-    return;
-  }
-  result.textContent = `${number}! = ${factorial(number).toLocaleString('es')}`;
-}
-document.querySelector('#factorial-run').addEventListener('click', calculateFactorial);
-document.querySelector('#factorial-input').addEventListener('keydown', event => {
-  if (event.key === 'Enter') calculateFactorial();
-});
-
-class TreeNode {
-  constructor(value) { this.value = value; this.left = null; this.right = null; }
-}
-let treeRoot = null;
-function insertTree(node, value) {
-  if (!node) return new TreeNode(value);
-  if (value < node.value) node.left = insertTree(node.left, value);
-  else if (value > node.value) node.right = insertTree(node.right, value);
-  return node;
-}
-function containsTree(node, value) {
-  if (!node) return false;
-  if (value === node.value) return true;
-  return value < node.value ? containsTree(node.left, value) : containsTree(node.right, value);
-}
-function inOrder(node, result = []) {
-  if (!node) return result;
-  inOrder(node.left, result);
-  result.push(node.value);
-  inOrder(node.right, result);
-  return result;
-}
-function buildTreeElement(node) {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'tree-node';
-  const value = document.createElement('span');
-  value.className = 'tree-value';
-  value.textContent = node.value;
-  wrapper.append(value);
-  if (node.left || node.right) {
-    const children = document.createElement('div');
-    children.className = 'tree-children';
-    if (node.left) children.append(buildTreeElement(node.left));
-    if (node.right) children.append(buildTreeElement(node.right));
-    wrapper.append(children);
-  }
-  return wrapper;
-}
-function renderTree() {
-  const visual = document.querySelector('#tree-visual');
-  visual.replaceChildren();
-  if (treeRoot) visual.append(buildTreeElement(treeRoot));
-  else {
-    const empty = document.createElement('span');
-    empty.className = 'tree-empty';
-    empty.textContent = 'Árbol vacío';
-    visual.append(empty);
-  }
-  const values = inOrder(treeRoot);
-  document.querySelector('#tree-result').textContent = `Inorden: ${values.length ? values.join(' · ') : '—'}`;
-}
-function readTreeNumber() {
-  const input = document.querySelector('#tree-input');
-  if (input.value.trim() === '' || !Number.isFinite(Number(input.value))) {
-    document.querySelector('#tree-result').textContent = 'Escribe un número entero.';
-    input.focus();
-    return null;
-  }
-  const value = Number(input.value);
-  if (!Number.isInteger(value)) {
-    document.querySelector('#tree-result').textContent = 'Usa un número entero.';
-    input.focus();
-    return null;
-  }
-  input.value = '';
-  return value;
-}
-document.querySelector('#tree-insert').addEventListener('click', () => {
-  const value = readTreeNumber();
-  if (value === null) return;
-  const existed = containsTree(treeRoot, value);
-  treeRoot = insertTree(treeRoot, value);
-  renderTree();
-  document.querySelector('#tree-result').textContent = existed ? `${value} ya estaba en el árbol · duplicados ignorados.` : `Se insertó ${value} · inorden: ${inOrder(treeRoot).join(' · ')}`;
-});
-document.querySelector('#tree-find').addEventListener('click', () => {
-  const value = readTreeNumber();
-  if (value === null) return;
-  const found = containsTree(treeRoot, value);
-  const result = document.querySelector('#tree-result');
-  result.textContent = found ? `${value} sí está en el árbol.` : `${value} no está en el árbol.`;
-  result.className = `structure-result ${found ? 'tree-result-found' : 'tree-result-missing'}`;
-});
-
-renderLinkedList();
-renderLinear([...stack].reverse(), '#stack-visual', 'Pila vacía');
-renderLinear(queue, '#queue-visual', 'Cola vacía');
-treeRoot = [8, 4, 12, 2, 6, 10, 14].reduce((root, value) => insertTree(root, value), null);
-renderTree();
+mostrarMenuPrincipal();
